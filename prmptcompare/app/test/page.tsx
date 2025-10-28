@@ -20,6 +20,8 @@ export default function TestPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   // Load comparison from URL parameter
   useEffect(() => {
@@ -87,6 +89,52 @@ export default function TestPage() {
     }
   };
 
+  const copyToClipboard = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const clearAll = () => {
+    setPrompts([
+      { id: '1', content: '', name: 'Prompt A' },
+      { id: '2', content: '', name: 'Prompt B' }
+    ]);
+    setVariables([]);
+    setVariableKey('');
+    setVariableValue('');
+    setComparisonData(null);
+    setError(null);
+  };
+
+  const loadExample = (exampleType: string) => {
+    clearAll();
+    if (exampleType === 'summarize') {
+      setPrompts([
+        { id: '1', content: 'Summarize the following article in 3 sentences: {{article_text}}', name: 'Prompt A' },
+        { id: '2', content: 'Provide a brief summary of this article, highlighting the main points: {{article_text}}', name: 'Prompt B' }
+      ]);
+      setVariableKey('article_text');
+      setVariableValue('Artificial intelligence is transforming how we work and live. Companies are investing billions in AI research and development. The technology promises to automate mundane tasks and unlock new possibilities across industries.');
+    } else if (exampleType === 'email') {
+      setPrompts([
+        { id: '1', content: 'Write a professional email about {{topic}} in a {{tone}} tone.', name: 'Prompt A' },
+        { id: '2', content: 'Compose an email regarding {{topic}} with a {{tone}} approach.', name: 'Prompt B' }
+      ]);
+      setVariableKey('topic');
+      setVariableValue('Project Update');
+      setVariables([{ key: 'topic', value: 'Project Update' }, { key: 'tone', value: 'professional' }]);
+    } else if (exampleType === 'code') {
+      setPrompts([
+        { id: '1', content: 'Write a {{language}} function to {{task}}', name: 'Prompt A' },
+        { id: '2', content: 'Create a {{language}} solution for {{task}} with error handling', name: 'Prompt B' }
+      ]);
+      setVariableKey('language');
+      setVariableValue('Python');
+      setVariables([{ key: 'language', value: 'Python' }, { key: 'task', value: 'sort a list' }]);
+    }
+  };
+
   const handleCompare = async () => {
     setError(null);
     setIsLoading(true);
@@ -138,7 +186,7 @@ export default function TestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen transition-colors ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -152,6 +200,21 @@ export default function TestPage() {
               <span className="text-xl font-bold text-gray-900">PromptCompare</span>
             </Link>
             <nav className="flex items-center space-x-6">
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                title={darkMode ? 'Light mode' : 'Dark mode'}
+              >
+                {darkMode ? (
+                  <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.34 2.02C6.59 1.82 2 6.42 2 12c0 5.52 4.48 10 10 10 3.71 0 6.93-2.02 8.66-5.02-7.51-.25-13.12-7.96-8.32-14.96z"/>
+                  </svg>
+                )}
+              </button>
               <Link href="/history" className="text-gray-600 hover:text-gray-900 font-medium">History</Link>
               <Link href="/" className="text-gray-600 hover:text-gray-900 font-medium">Back to Home</Link>
             </nav>
@@ -323,7 +386,7 @@ export default function TestPage() {
             </div>
 
             {/* Submit Button */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-3">
               <button
                 onClick={handleCompare}
                 disabled={isLoading || !apiKey.trim()}
@@ -345,6 +408,15 @@ export default function TestPage() {
                     <span>Run Comparison</span>
                   </>
                 )}
+              </button>
+              <button
+                onClick={clearAll}
+                className="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 flex items-center justify-center space-x-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+                <span>Clear All</span>
               </button>
             </div>
           </div>
@@ -387,6 +459,31 @@ export default function TestPage() {
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+
+            {/* Example Prompts */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Examples</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => loadExample('summarize')}
+                  className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-sm font-medium"
+                >
+                  📄 Summarize Article
+                </button>
+                <button
+                  onClick={() => loadExample('email')}
+                  className="w-full text-left px-4 py-2 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-sm font-medium"
+                >
+                  ✉️ Write Email
+                </button>
+                <button
+                  onClick={() => loadExample('code')}
+                  className="w-full text-left px-4 py-2 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-sm font-medium"
+                >
+                  💻 Generate Code
+                </button>
               </div>
             </div>
 
@@ -558,8 +655,30 @@ export default function TestPage() {
                     )}
                     
                     {/* Response Output */}
-                    <div className="bg-gray-50 rounded-xl p-4 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                      {result.output}
+                    <div className="relative">
+                      <div className="bg-gray-50 rounded-xl p-4 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                        {result.output}
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(result.output, idx)}
+                        className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        {copiedIndex === idx ? (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 ))}
