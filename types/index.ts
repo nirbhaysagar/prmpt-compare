@@ -33,7 +33,8 @@ export interface PerformanceMetrics {
 }
 
 export interface PromptResult {
-  promptId: string;           // Which prompt was used
+  promptId: string;
+  promptName: string;           // Which prompt was used
   model: string;              // Which LLM was used
   output: string;             // The AI's response
   executionTime?: number;     // How long it took (ms)
