@@ -287,7 +287,7 @@ export default function HistoryPage() {
                 <option value="all">All Comparisons</option>
                 <option value="high-quality">High Quality (80+)</option>
                 <option value="recent">Recent (7 days)</option>
-                <option value="expensive">Expensive (>$0.01)</option>
+                <option value="expensive">Expensive ({'>'}$0.01)</option>
               </select>
               
               {/* Bulk Actions */}
